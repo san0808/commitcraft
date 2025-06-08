@@ -335,28 +335,35 @@ fn execute_git_commit(message: &str, review: bool) -> Result<(), String> {
 fn show_config() {
     match config::load_config() {
         Ok(config) => {
-            println!("{}", "Current Configuration:".bold().green());
-            println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+            println!("{}", "📋 Current Configuration".bold().cyan());
+            println!("{}", "─".repeat(50));
             
-            // Default provider
-            match &config.default_provider {
-                Some(provider) => println!("Default Provider: {}", provider.cyan()),
-                None => println!("Default Provider: {}", "Not set".yellow()),
+            // Provider info
+            if let Some(provider) = &config.default_provider {
+                println!("🤖 Default Provider: {}", provider.green());
+            } else {
+                println!("🤖 Default Provider: {}", "Not set".yellow());
             }
             
-            // API Keys (masked)
-            println!("\n{}:", "API Keys".bold());
-            println!("  OpenAI: {}", if config.api_keys.openai.is_some() { "✓ Configured".green() } else { "✗ Not set".red() });
-            println!("  Gemini: {}", if config.api_keys.gemini.is_some() { "✓ Configured".green() } else { "✗ Not set".red() });
-            println!("  Anthropic: {}", if config.api_keys.anthropic.is_some() { "✓ Configured".green() } else { "✗ Not set".red() });
+            // API keys (masked)
+            println!("\n🔑 API Keys:");
+            println!("  OpenAI:    {}", 
+                if config.api_keys.openai.is_some() { "✓ Configured".green() } else { "✗ Not set".red() }
+            );
+            println!("  Gemini:    {}", 
+                if config.api_keys.gemini.is_some() { "✓ Configured".green() } else { "✗ Not set".red() }
+            );
+            println!("  Anthropic: {}", 
+                if config.api_keys.anthropic.is_some() { "✓ Configured".green() } else { "✗ Not set".red() }
+            );
             
-            // Default Models
-            println!("\n{}:", "Default Models".bold());
+            // Models
+            println!("\n🎯 Default Models:");
             if let Some(model) = &config.models.openai {
-                println!("  OpenAI: {}", model.cyan());
+                println!("  OpenAI:    {}", model.cyan());
             }
             if let Some(model) = &config.models.gemini {
-                println!("  Gemini: {}", model.cyan());
+                println!("  Gemini:    {}", model.cyan());
             }
             if let Some(model) = &config.models.anthropic {
                 println!("  Anthropic: {}", model.cyan());
@@ -364,49 +371,45 @@ fn show_config() {
             
             // Aliases
             if !config.aliases.is_empty() {
-                println!("\n{}:", "Model Aliases".bold());
+                println!("\n🏷️  Model Aliases:");
                 for (alias, model) in &config.aliases {
                     println!("  {} → {}", alias.yellow(), model.cyan());
                 }
             }
-        },
+            
+            println!("\n💡 Run '{}' to reconfigure", "commitcraft setup".bold());
+        }
         Err(e) => {
-            eprintln!("{} {}", "Error loading configuration:".red().bold(), e);
-            std::process::exit(1);
+            eprintln!("{} {}", "Error loading config:".red().bold(), e);
+            println!("Run '{}' to set up configuration.", "commitcraft setup".bold().cyan());
         }
     }
 }
 
 fn list_providers_and_models() {
-    println!("{}", "Available Providers and Models:".bold().green());
-    println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    println!("{}", "🤖 Available Providers & Models".bold().cyan());
+    println!("{}", "─".repeat(50));
     
-    println!("\n{}", "OpenAI:".bold().blue());
-    println!("  • gpt-4o (latest GPT-4 Omni)");
-    println!("  • gpt-4o-mini (faster, cheaper GPT-4 Omni)");
-    println!("  • gpt-4-turbo (previous generation)");
+    println!("\n{}:", "OpenAI".bold().green());
+    println!("  • gpt-4o (latest, most capable)");
+    println!("  • gpt-4o-mini (fast and efficient)");
+    println!("  • gpt-4-turbo");
+    println!("  • gpt-3.5-turbo");
     
-    println!("\n{}", "Google Gemini:".bold().blue());
+    println!("\n{}:", "Google Gemini".bold().blue());
     println!("  • gemini-1.5-pro-latest (most capable)");
-    println!("  • gemini-1.5-flash-latest (fast and efficient)");
-    println!("  • gemini-1.0-pro (stable version)");
+    println!("  • gemini-1.5-flash-latest (fast, default)");
+    println!("  • gemini-1.0-pro");
     
-    println!("\n{}", "Anthropic Claude:".bold().blue());
-    println!("  • claude-3-5-sonnet-latest (most capable)");
-    println!("  • claude-3-haiku-20240307 (fastest)");
+    println!("\n{}:", "Anthropic Claude".bold().purple());
+    println!("  • claude-3-5-sonnet-20241022 (latest, most capable)");
+    println!("  • claude-3-haiku-20240307 (fast, default)");
     println!("  • claude-3-opus-20240229 (most powerful)");
     
-    println!("\n{}", "Usage Examples:".bold().yellow());
+    println!("\n{}:", "Usage Examples".bold().yellow());
     println!("  commitcraft --provider openai --model gpt-4o");
-    println!("  commitcraft --provider gemini --model gemini-1.5-flash-latest");
-    println!("  commitcraft --provider anthropic --model claude-3-haiku-20240307");
+    println!("  commitcraft --provider gemini --model gemini-1.5-pro-latest");
+    println!("  commitcraft --provider anthropic --model claude-3-5-sonnet-20241022");
     
-    if let Ok(config) = config::load_config() {
-        if !config.aliases.is_empty() {
-            println!("\n{}", "Your Configured Aliases:".bold().yellow());
-            for (alias, model) in &config.aliases {
-                println!("  commitcraft --model {} (→ {})", alias.green(), model.cyan());
-            }
-        }
-    }
+    println!("\n💡 Set up aliases with '{}'", "commitcraft setup".bold());
 }
