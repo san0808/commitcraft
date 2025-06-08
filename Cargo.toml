@@ -1,0 +1,46 @@
+[package]
+name = "commitcraft"
+version = "1.0.0"
+edition = "2021"
+description = "A fast, intelligent CLI tool that generates conventional commit messages using AI"
+authors = ["Your Name <your.email@example.com>"]
+license = "MIT"
+repository = "https://github.com/your-username/commitcraft"
+homepage = "https://github.com/your-username/commitcraft"
+keywords = ["git", "commit", "ai", "conventional-commits", "cli"]
+categories = ["command-line-utilities", "development-tools"]
+
+[dependencies]
+# Async runtime
+tokio = { version = "1", features = ["full"] }
+
+# CLI Parsing
+clap = { version = "4.5.4", features = ["derive"] }
+
+# Serialization / Deserialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8.12"
+
+# Configuration Management
+config = { version = "0.14.0", features = ["toml"] }
+directories = "5.0.1"
+
+# API Calls
+reqwest = { version = "0.12.4", features = ["json", "rustls-tls"] }
+async-trait = "0.1.80"
+
+# OpenAI Specific
+async-openai = { version = "0.19.1", features = ["rustls"] }
+
+# User Interaction & Display
+question = "0.2.2"
+spinners = "4.1.0"
+colored = "2.1.0"
+
+# Logging
+log = "0.4.21"
+env_logger = "0.11.3"
+
+# Schema Generation for OpenAI functions
+schemars = "0.8.19"
