@@ -34,6 +34,18 @@ pub struct Cli {
     /// Include file names in the commit message context.
     #[arg(long)]
     pub include_files: bool,
+
+    /// Show the git command without interactive editing (just print it).
+    #[arg(short = 's', long)]
+    pub show_command: bool,
+
+    /// Use legacy commit flow (auto-commit with confirmation).
+    #[arg(long)]
+    pub legacy: bool,
+
+    /// Skip interactive command editing and commit immediately.
+    #[arg(short = 'y', long)]
+    pub yes: bool,
 }
 
 #[derive(Subcommand, Debug)]

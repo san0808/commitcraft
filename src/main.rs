@@ -2,6 +2,8 @@ use clap::Parser;
 use colored::*;
 use spinners::{Spinner, Spinners};
 use question::{Question, Answer};
+use rustyline::{DefaultEditor, Result as RustyResult};
+use std::process::Command;
 
 mod cli;
 mod config;
@@ -181,14 +183,132 @@ async fn main() {
 
     let commit_str = commit_msg.to_string();
 
+    // Handle different modes
     if cli_args.dry_run {
         println!("\n{}\n---\n{}\n---", "Generated Commit Message:".bold(), commit_str.green());
         return;
     }
 
-    println!("\n{}\n---\n{}\n---", "Proposed Commit:".bold(), commit_str.green());
+    if cli_args.show_command {
+        let git_command = format_git_command(&commit_str, cli_args.review);
+        println!("\n{}", "Generated git command:".bold());
+        println!("{}", git_command.cyan());
+        return;
+    }
+
+    if cli_args.legacy {
+        // Use the old confirmation-based flow
+        legacy_commit_flow(&commit_str, cli_args.force, cli_args.review);
+        return;
+    }
+
+    if cli_args.yes {
+        // Skip interactive editing, commit immediately
+        if let Err(e) = execute_git_commit(&commit_str, cli_args.review) {
+            eprintln!("{} {}", "Error during commit:".red().bold(), e);
+            std::process::exit(1);
+        }
+        return;
+    }
+
+    // Default: Interactive command editing
+    interactive_commit_flow(&commit_str, cli_args.review);
+}
+
+/// Format the git commit command with proper escaping
+fn format_git_command(message: &str, review: bool) -> String {
+    let review_flag = if review { " -e" } else { "" };
     
-    if !cli_args.force {
+    // For multi-line messages, we need to handle them properly
+    if message.contains('\n') {
+        // Use heredoc-style for multi-line messages
+        format!("git commit{} -F- <<'EOF'\n{}\nEOF", review_flag, message)
+    } else {
+        // Simple single-line message
+        format!("git commit{} -m \"{}\"", review_flag, message.replace('"', "\\\""))
+    }
+}
+
+/// Interactive command editing flow (new default)
+fn interactive_commit_flow(commit_message: &str, review: bool) {
+    println!("\n{}", "📝 Generated commit message:".bold());
+    println!("{}", "─".repeat(50));
+    println!("{}", commit_message.green());
+    println!("{}", "─".repeat(50));
+
+    let git_command = if commit_message.contains('\n') {
+        // For multi-line, show a simplified version for editing
+        let title = commit_message.lines().next().unwrap_or(commit_message);
+        format!("git commit{} -m \"{}\"", if review { " -e" } else { "" }, title)
+    } else {
+        format_git_command(commit_message, review)
+    };
+
+    println!("\n{}", "Edit the command below (or press Enter to execute):".bold());
+    
+    let mut rl = match DefaultEditor::new() {
+        Ok(editor) => editor,
+        Err(e) => {
+            eprintln!("{} Failed to create interactive editor: {}", "Error:".red().bold(), e);
+            println!("Falling back to legacy mode...");
+            legacy_commit_flow(commit_message, false, review);
+            return;
+        }
+    };
+
+    match rl.readline_with_initial("$ ", (&git_command, "")) {
+        Ok(edited_command) => {
+            let edited_command = edited_command.trim();
+            if edited_command.is_empty() {
+                println!("{}", "Commit cancelled.".yellow());
+                return;
+            }
+
+            // Execute the edited command
+            println!("\n{} {}", "Executing:".bold(), edited_command.cyan());
+            match execute_shell_command(edited_command) {
+                Ok(output) => {
+                    println!("{}", "✓ Commit successful!".green().bold());
+                    if !output.trim().is_empty() {
+                        println!("{}", output);
+                    }
+                },
+                Err(e) => {
+                    eprintln!("{} {}", "Error:".red().bold(), e);
+                    std::process::exit(1);
+                }
+            }
+        },
+        Err(rustyline::error::ReadlineError::Interrupted) => {
+            println!("{}", "Commit cancelled.".yellow());
+        },
+        Err(e) => {
+            eprintln!("{} Failed to read input: {}", "Error:".red().bold(), e);
+            std::process::exit(1);
+        }
+    }
+}
+
+/// Execute a shell command and return output
+fn execute_shell_command(command: &str) -> Result<String, String> {
+    let output = Command::new("sh")
+        .arg("-c")
+        .arg(command)
+        .output()
+        .map_err(|e| format!("Failed to execute command: {}", e))?;
+
+    if output.status.success() {
+        Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    } else {
+        Err(String::from_utf8_lossy(&output.stderr).to_string())
+    }
+}
+
+/// Legacy commit flow (old behavior)
+fn legacy_commit_flow(commit_message: &str, force: bool, review: bool) {
+    println!("\n{}\n---\n{}\n---", "Proposed Commit:".bold(), commit_message.green());
+    
+    if !force {
         let answer = Question::new("Do you want to commit with this message? (Y/n)")
             .yes_no()
             .default(Answer::YES)
@@ -201,10 +321,15 @@ async fn main() {
         }
     }
 
-    if let Err(e) = git::commit(&commit_str, cli_args.review) {
+    if let Err(e) = execute_git_commit(commit_message, review) {
         eprintln!("{} {}", "Error during commit:".red().bold(), e);
         std::process::exit(1);
     }
+}
+
+/// Execute git commit with the given message
+fn execute_git_commit(message: &str, review: bool) -> Result<(), String> {
+    git::commit(message, review)
 }
 
 fn show_config() {

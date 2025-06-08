@@ -42,25 +42,44 @@ commitcraft list
 
 ## 📖 Usage
 
-### Basic Usage
+### ✨ **New Interactive Mode (Default)**
 ```bash
 # Stage your changes
 git add .
 
-# Generate and commit
+# Generate and edit commit command interactively
 commitcraft
+✓ Message generated successfully!
+
+📝 Generated commit message:
+──────────────────────────────────────────────────
+feat(auth): add OAuth2 login support
+
+Implement OAuth2 authentication flow with Google and GitHub providers.
+Includes token refresh logic and secure storage.
+──────────────────────────────────────────────────
+
+Edit the command below (or press Enter to execute):
+$ git commit -m "feat(auth): add OAuth2 login support"█
+# ↑ You can edit this command or just press Enter to execute
+```
+
+### 🚀 **Quick Modes**
+```bash
+# Skip interactive editing, commit immediately
+commitcraft -y
+
+# Just show the git command (no execution)
+commitcraft --show-command
 
 # Dry run (generate message without committing)
 commitcraft --dry-run
 
-# Review message in editor before committing
-commitcraft --review
-
-# Skip confirmation prompt
-commitcraft --force
+# Use legacy confirmation flow
+commitcraft --legacy
 ```
 
-### Advanced Usage
+### 🔧 **Advanced Usage**
 ```bash
 # Use specific provider and model
 commitcraft --provider openai --model gpt-4o
@@ -71,8 +90,11 @@ commitcraft --model smart
 # Include verbose output and file context
 commitcraft --verbose --include-files
 
+# Review in editor before committing
+commitcraft --review
+
 # Combine options
-commitcraft --provider anthropic --model fast --dry-run --verbose
+commitcraft --provider anthropic --model fast --verbose --yes
 ```
 
 ## 🛠️ Configuration
