@@ -84,21 +84,29 @@ Analyze the git diff carefully and generate an appropriate conventional commit m
             }
         });
 
-        let response = self.client.post(&url)
+        let response = self
+            .client
+            .post(&url)
             .json(&body)
             .send()
             .await
             .map_err(|e| format!("Gemini API request failed: {}", e))?;
-            
+
         if !response.status().is_success() {
-             let error_body = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
-             return Err(format!("Gemini API returned an error: {}", error_body));
+            let error_body = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
+            return Err(format!("Gemini API returned an error: {}", error_body));
         }
 
-        let gemini_response: GeminiResponse = response.json().await
+        let gemini_response: GeminiResponse = response
+            .json()
+            .await
             .map_err(|e| format!("Failed to parse Gemini response: {}", e))?;
 
-        let text = gemini_response.candidates
+        let text = gemini_response
+            .candidates
             .get(0)
             .and_then(|c| c.content.parts.get(0))
             .map(|p| &p.text)

@@ -84,7 +84,7 @@ mod tests {
         let args = vec!["prog", "setup"];
         let cli = Cli::parse_from(args);
         match cli.command {
-            Some(Commands::Setup) => {},
+            Some(Commands::Setup) => {}
             _ => panic!("Expected Setup command"),
         }
     }

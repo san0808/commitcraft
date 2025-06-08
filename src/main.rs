@@ -1,8 +1,8 @@
 use clap::Parser;
 use colored::*;
-use spinners::{Spinner, Spinners};
-use question::{Question, Answer};
+use question::{Answer, Question};
 use rustyline::{DefaultEditor, Result as RustyResult};
+use spinners::{Spinner, Spinners};
 use std::process::Command;
 
 mod cli;
@@ -12,17 +12,14 @@ mod providers;
 
 use cli::{Cli, Commands};
 use providers::{
-    AIProvider,
-    openai::OpenAIProvider,
-    gemini::GeminiProvider,
-    anthropic::AnthropicProvider
+    anthropic::AnthropicProvider, gemini::GeminiProvider, openai::OpenAIProvider, AIProvider,
 };
 
 #[tokio::main]
 async fn main() {
     // Initialize logger
     env_logger::init();
-    
+
     let cli_args = Cli::parse();
 
     // Handle commands
@@ -33,15 +30,15 @@ async fn main() {
                 std::process::exit(1);
             }
             return;
-        },
+        }
         Some(Commands::Config) => {
             show_config();
             return;
-        },
+        }
         Some(Commands::List) => {
             list_providers_and_models();
             return;
-        },
+        }
         None => {}
     }
 
@@ -59,7 +56,7 @@ async fn main() {
         eprintln!("{}", "Error: Not inside a git repository.".red().bold());
         std::process::exit(1);
     }
-    
+
     // Get staged diff
     let diff = match git::get_staged_diff() {
         Ok(d) => d,
@@ -108,7 +105,9 @@ async fn main() {
     };
 
     // Determine provider and model
-    let provider_name = cli_args.provider.or(config.default_provider)
+    let provider_name = cli_args
+        .provider
+        .or(config.default_provider)
         .unwrap_or_else(|| "gemini".to_string());
 
     let model_name_or_alias = cli_args.model.unwrap_or_else(|| {
@@ -121,7 +120,8 @@ async fn main() {
         .unwrap_or_else(|| "default".to_string())
     });
 
-    let model_name = config.aliases
+    let model_name = config
+        .aliases
         .get(&model_name_or_alias)
         .unwrap_or(&model_name_or_alias);
 
@@ -149,11 +149,15 @@ async fn main() {
         "gemini" => Box::new(GeminiProvider::new(api_key, model_name.to_string())),
         "anthropic" => Box::new(AnthropicProvider::new(api_key, model_name.to_string())),
         _ => {
-            eprintln!("{} Unknown provider '{}'", "Error:".red().bold(), provider_name);
+            eprintln!(
+                "{} Unknown provider '{}'",
+                "Error:".red().bold(),
+                provider_name
+            );
             std::process::exit(1);
         }
     };
-    
+
     println!(
         "Using provider: {} ({})",
         provider_name.cyan(),
@@ -165,15 +169,17 @@ async fn main() {
     let commit_msg = match provider.generate_commit_message(&enhanced_diff).await {
         Ok(msg) => {
             sp.stop_with_message("✓ Message generated successfully!".into());
-            
+
             // Validate the generated commit message
             if let Err(validation_error) = msg.validate() {
                 eprintln!("{} {}", "Warning:".yellow().bold(), validation_error);
-                eprintln!("The generated message may not follow conventional commits format exactly.");
+                eprintln!(
+                    "The generated message may not follow conventional commits format exactly."
+                );
             }
-            
+
             msg
-        },
+        }
         Err(e) => {
             sp.stop_with_message("✗ Error generating message.".into());
             eprintln!("{} {}", "API Error:".red().bold(), e);
@@ -185,7 +191,11 @@ async fn main() {
 
     // Handle different modes
     if cli_args.dry_run {
-        println!("\n{}\n---\n{}\n---", "Generated Commit Message:".bold(), commit_str.green());
+        println!(
+            "\n{}\n---\n{}\n---",
+            "Generated Commit Message:".bold(),
+            commit_str.green()
+        );
         return;
     }
 
@@ -218,14 +228,18 @@ async fn main() {
 /// Format the git commit command with proper escaping
 fn format_git_command(message: &str, review: bool) -> String {
     let review_flag = if review { " -e" } else { "" };
-    
+
     // For multi-line messages, we need to handle them properly
     if message.contains('\n') {
         // Use heredoc-style for multi-line messages
         format!("git commit{} -F- <<'EOF'\n{}\nEOF", review_flag, message)
     } else {
         // Simple single-line message
-        format!("git commit{} -m \"{}\"", review_flag, message.replace('"', "\\\""))
+        format!(
+            "git commit{} -m \"{}\"",
+            review_flag,
+            message.replace('"', "\\\"")
+        )
     }
 }
 
@@ -239,17 +253,28 @@ fn interactive_commit_flow(commit_message: &str, review: bool) {
     let git_command = if commit_message.contains('\n') {
         // For multi-line, show a simplified version for editing
         let title = commit_message.lines().next().unwrap_or(commit_message);
-        format!("git commit{} -m \"{}\"", if review { " -e" } else { "" }, title)
+        format!(
+            "git commit{} -m \"{}\"",
+            if review { " -e" } else { "" },
+            title
+        )
     } else {
         format_git_command(commit_message, review)
     };
 
-    println!("\n{}", "Edit the command below (or press Enter to execute):".bold());
-    
+    println!(
+        "\n{}",
+        "Edit the command below (or press Enter to execute):".bold()
+    );
+
     let mut rl = match DefaultEditor::new() {
         Ok(editor) => editor,
         Err(e) => {
-            eprintln!("{} Failed to create interactive editor: {}", "Error:".red().bold(), e);
+            eprintln!(
+                "{} Failed to create interactive editor: {}",
+                "Error:".red().bold(),
+                e
+            );
             println!("Falling back to legacy mode...");
             legacy_commit_flow(commit_message, false, review);
             return;
@@ -272,16 +297,16 @@ fn interactive_commit_flow(commit_message: &str, review: bool) {
                     if !output.trim().is_empty() {
                         println!("{}", output);
                     }
-                },
+                }
                 Err(e) => {
                     eprintln!("{} {}", "Error:".red().bold(), e);
                     std::process::exit(1);
                 }
             }
-        },
+        }
         Err(rustyline::error::ReadlineError::Interrupted) => {
             println!("{}", "Commit cancelled.".yellow());
-        },
+        }
         Err(e) => {
             eprintln!("{} Failed to read input: {}", "Error:".red().bold(), e);
             std::process::exit(1);
@@ -306,8 +331,12 @@ fn execute_shell_command(command: &str) -> Result<String, String> {
 
 /// Legacy commit flow (old behavior)
 fn legacy_commit_flow(commit_message: &str, force: bool, review: bool) {
-    println!("\n{}\n---\n{}\n---", "Proposed Commit:".bold(), commit_message.green());
-    
+    println!(
+        "\n{}\n---\n{}\n---",
+        "Proposed Commit:".bold(),
+        commit_message.green()
+    );
+
     if !force {
         let answer = Question::new("Do you want to commit with this message? (Y/n)")
             .yes_no()
@@ -337,26 +366,41 @@ fn show_config() {
         Ok(config) => {
             println!("{}", "📋 Current Configuration".bold().cyan());
             println!("{}", "─".repeat(50));
-            
+
             // Provider info
             if let Some(provider) = &config.default_provider {
                 println!("🤖 Default Provider: {}", provider.green());
             } else {
                 println!("🤖 Default Provider: {}", "Not set".yellow());
             }
-            
+
             // API keys (masked)
             println!("\n🔑 API Keys:");
-            println!("  OpenAI:    {}", 
-                if config.api_keys.openai.is_some() { "✓ Configured".green() } else { "✗ Not set".red() }
+            println!(
+                "  OpenAI:    {}",
+                if config.api_keys.openai.is_some() {
+                    "✓ Configured".green()
+                } else {
+                    "✗ Not set".red()
+                }
             );
-            println!("  Gemini:    {}", 
-                if config.api_keys.gemini.is_some() { "✓ Configured".green() } else { "✗ Not set".red() }
+            println!(
+                "  Gemini:    {}",
+                if config.api_keys.gemini.is_some() {
+                    "✓ Configured".green()
+                } else {
+                    "✗ Not set".red()
+                }
             );
-            println!("  Anthropic: {}", 
-                if config.api_keys.anthropic.is_some() { "✓ Configured".green() } else { "✗ Not set".red() }
+            println!(
+                "  Anthropic: {}",
+                if config.api_keys.anthropic.is_some() {
+                    "✓ Configured".green()
+                } else {
+                    "✗ Not set".red()
+                }
             );
-            
+
             // Models
             println!("\n🎯 Default Models:");
             if let Some(model) = &config.models.openai {
@@ -368,7 +412,7 @@ fn show_config() {
             if let Some(model) = &config.models.anthropic {
                 println!("  Anthropic: {}", model.cyan());
             }
-            
+
             // Aliases
             if !config.aliases.is_empty() {
                 println!("\n🏷️  Model Aliases:");
@@ -376,12 +420,15 @@ fn show_config() {
                     println!("  {} → {}", alias.yellow(), model.cyan());
                 }
             }
-            
+
             println!("\n💡 Run '{}' to reconfigure", "commitcraft setup".bold());
         }
         Err(e) => {
             eprintln!("{} {}", "Error loading config:".red().bold(), e);
-            println!("Run '{}' to set up configuration.", "commitcraft setup".bold().cyan());
+            println!(
+                "Run '{}' to set up configuration.",
+                "commitcraft setup".bold().cyan()
+            );
         }
     }
 }
@@ -389,27 +436,27 @@ fn show_config() {
 fn list_providers_and_models() {
     println!("{}", "🤖 Available Providers & Models".bold().cyan());
     println!("{}", "─".repeat(50));
-    
+
     println!("\n{}:", "OpenAI".bold().green());
     println!("  • gpt-4o (latest, most capable)");
     println!("  • gpt-4o-mini (fast and efficient)");
     println!("  • gpt-4-turbo");
     println!("  • gpt-3.5-turbo");
-    
+
     println!("\n{}:", "Google Gemini".bold().blue());
     println!("  • gemini-1.5-pro-latest (most capable)");
     println!("  • gemini-1.5-flash-latest (fast, default)");
     println!("  • gemini-1.0-pro");
-    
+
     println!("\n{}:", "Anthropic Claude".bold().purple());
     println!("  • claude-3-5-sonnet-20241022 (latest, most capable)");
     println!("  • claude-3-haiku-20240307 (fast, default)");
     println!("  • claude-3-opus-20240229 (most powerful)");
-    
+
     println!("\n{}:", "Usage Examples".bold().yellow());
     println!("  commitcraft --provider openai --model gpt-4o");
     println!("  commitcraft --provider gemini --model gemini-1.5-pro-latest");
     println!("  commitcraft --provider anthropic --model claude-3-5-sonnet-20241022");
-    
+
     println!("\n💡 Set up aliases with '{}'", "commitcraft setup".bold());
 }

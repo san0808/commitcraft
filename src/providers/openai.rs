@@ -1,16 +1,19 @@
-use async_trait::async_trait;
 use async_openai::{
+    config::OpenAIConfig,
     types::{
-        CreateChatCompletionRequestArgs, Role, // Role might not be directly used for message construction anymore
         // Remove deprecated types
         // ChatCompletionFunctions, ChatCompletionFunctionCall,
         // Add new types
         ChatCompletionRequestMessage, // This is now an enum
-        ChatCompletionRequestSystemMessage, ChatCompletionRequestUserMessage, ChatCompletionRequestUserMessageContent,
+        ChatCompletionRequestSystemMessage,
+        ChatCompletionRequestUserMessage,
+        ChatCompletionRequestUserMessageContent,
+        CreateChatCompletionRequestArgs,
+        Role, // Role might not be directly used for message construction anymore
     },
-    config::OpenAIConfig,
     Client,
 };
+use async_trait::async_trait;
 use schemars::JsonSchema;
 
 use super::{AIProvider, GeneratedCommit};
@@ -43,7 +46,7 @@ impl AIProvider for OpenAIProvider {
     async fn generate_commit_message(&self, diff: &str) -> Result<GeneratedCommit, String> {
         let parameters_schema = serde_json::to_value(schemars::schema_for!(Commit))
             .map_err(|e| format!("Failed to create schema: {}", e))?;
-        
+
         let system_prompt = "You are an expert programmer who writes git commit messages following the Conventional Commits specification (https://www.conventionalcommits.org/en/v1.0.0/).
 
 For the title field:
@@ -61,7 +64,7 @@ For the description field:
 - Include breaking changes if any
 
 Analyze the git diff carefully and generate an appropriate conventional commit message.";
-        
+
         let messages = vec![
             ChatCompletionRequestMessage::System(ChatCompletionRequestSystemMessage {
                 role: Role::System,
@@ -70,9 +73,10 @@ Analyze the git diff carefully and generate an appropriate conventional commit m
             }),
             ChatCompletionRequestMessage::User(ChatCompletionRequestUserMessage {
                 role: Role::User,
-                content: ChatCompletionRequestUserMessageContent::Text(
-                    format!("Here is the git diff:\n\n```diff\n{}\n```", diff)
-                ),
+                content: ChatCompletionRequestUserMessageContent::Text(format!(
+                    "Here is the git diff:\n\n```diff\n{}\n```",
+                    diff
+                )),
                 name: None,
             }),
         ];
@@ -84,17 +88,31 @@ Analyze the git diff carefully and generate an appropriate conventional commit m
             .build()
             .map_err(|e| format!("Failed to build OpenAI request: {}", e))?;
 
-        let response = self.client.chat().create(request).await
+        let response = self
+            .client
+            .chat()
+            .create(request)
+            .await
             .map_err(|e| format!("OpenAI API call failed: {}", e))?;
 
-        let choice = response.choices.get(0)
+        let choice = response
+            .choices
+            .get(0)
             .ok_or("No response choice from OpenAI".to_string())?;
 
-        let function_details = &choice.message.tool_calls.as_ref()
-            .ok_or("Expected tool calls from OpenAI".to_string())?[0].function;
+        let function_details = &choice
+            .message
+            .tool_calls
+            .as_ref()
+            .ok_or("Expected tool calls from OpenAI".to_string())?[0]
+            .function;
 
-        let commit: Commit = serde_json::from_str(&function_details.arguments)
-            .map_err(|e| format!("Failed to parse OpenAI tool call arguments: {}\nArguments: {}", e, function_details.arguments))?;
+        let commit: Commit = serde_json::from_str(&function_details.arguments).map_err(|e| {
+            format!(
+                "Failed to parse OpenAI tool call arguments: {}\nArguments: {}",
+                e, function_details.arguments
+            )
+        })?;
 
         Ok(GeneratedCommit {
             title: commit.title,

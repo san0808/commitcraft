@@ -69,7 +69,9 @@ Analyze the git diff carefully and generate an appropriate conventional commit m
             ]
         });
 
-        let response = self.client.post(url)
+        let response = self
+            .client
+            .post(url)
             .header("x-api-key", &self.api_key)
             .header("anthropic-version", "2023-06-01")
             .json(&body)
@@ -78,19 +80,30 @@ Analyze the git diff carefully and generate an appropriate conventional commit m
             .map_err(|e| format!("Anthropic API request failed: {}", e))?;
 
         if !response.status().is_success() {
-             let error_body = response.text().await.unwrap_or_else(|_| "Unknown error".to_string());
-             return Err(format!("Anthropic API returned an error: {}", error_body));
+            let error_body = response
+                .text()
+                .await
+                .unwrap_or_else(|_| "Unknown error".to_string());
+            return Err(format!("Anthropic API returned an error: {}", error_body));
         }
 
-        let anthropic_response: AnthropicResponse = response.json().await
+        let anthropic_response: AnthropicResponse = response
+            .json()
+            .await
             .map_err(|e| format!("Failed to parse Anthropic response: {}", e))?;
 
-        let text = anthropic_response.content.get(0)
+        let text = anthropic_response
+            .content
+            .get(0)
             .map(|c| &c.text)
             .ok_or("Invalid response structure from Anthropic".to_string())?;
 
-        serde_json::from_str(text)
-            .map_err(|e| format!("Failed to parse JSON from Anthropic response text: {}. Raw text: '{}'", e, text))
+        serde_json::from_str(text).map_err(|e| {
+            format!(
+                "Failed to parse JSON from Anthropic response text: {}. Raw text: '{}'",
+                e, text
+            )
+        })
     }
 }
 

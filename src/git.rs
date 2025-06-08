@@ -1,6 +1,6 @@
+use colored::*;
 use std::process::{Command, Stdio};
 use std::str;
-use colored::*;
 
 /// Checks if the current directory is a Git repository.
 pub fn is_git_repository() -> bool {
@@ -48,7 +48,10 @@ pub fn get_staged_files() -> Result<Vec<String>, String> {
 
     if !output.status.success() {
         let stderr = str::from_utf8(&output.stderr).unwrap_or("Unknown git error");
-        return Err(format!("'git diff --staged --name-only' failed: {}", stderr));
+        return Err(format!(
+            "'git diff --staged --name-only' failed: {}",
+            stderr
+        ));
     }
 
     let files = str::from_utf8(&output.stdout)
