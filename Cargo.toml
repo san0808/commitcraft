@@ -3,12 +3,19 @@ name = "commitcraft"
 version = "1.0.0"
 edition = "2021"
 description = "A fast, intelligent CLI tool that generates conventional commit messages using AI"
-authors = ["Your Name <your.email@example.com>"]
+authors = ["Sanket <sanket@example.com>"]
 license = "MIT"
-repository = "https://github.com/your-username/commitcraft"
-homepage = "https://github.com/your-username/commitcraft"
+repository = "https://github.com/sanket08/commitcraft"
+homepage = "https://github.com/sanket08/commitcraft"
+documentation = "https://docs.rs/commitcraft"
+readme = "README.md"
 keywords = ["git", "commit", "ai", "conventional-commits", "cli"]
 categories = ["command-line-utilities", "development-tools"]
+exclude = ["target/", ".git/", "*.log"]
+
+[[bin]]
+name = "commitcraft"
+path = "src/main.rs"
 
 [dependencies]
 # Async runtime
