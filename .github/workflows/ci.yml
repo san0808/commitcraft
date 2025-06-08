@@ -182,7 +182,7 @@ jobs:
           
           ### Quick Install (Linux/macOS)
           ```bash
-          curl -sSL https://raw.githubusercontent.com/sanket08/commitcraft/main/install.sh | bash
+          curl -sSL https://raw.githubusercontent.com/san0808/commitcraft/main/install.sh | bash
           ```
           
           ### Manual Download

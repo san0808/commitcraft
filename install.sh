@@ -2,9 +2,9 @@
 set -e
 
 # CommitCraft Installation Script
-# Usage: curl -sSL https://raw.githubusercontent.com/sanket08/commitcraft/main/install.sh | bash
+# Usage: curl -sSL https://raw.githubusercontent.com/san0808/commitcraft/main/install.sh | bash
 
-REPO="sanket08/commitcraft"
+REPO="san0808/commitcraft"
 BINARY_NAME="commitcraft"
 
 # Detect OS and architecture

@@ -3,7 +3,7 @@
 [![Crates.io](https://img.shields.io/crates/v/commitcraft.svg)](https://crates.io/crates/commitcraft)
 [![Downloads](https://img.shields.io/crates/d/commitcraft.svg)](https://crates.io/crates/commitcraft)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/sanket08/commitcraft/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/sanket08/commitcraft/actions)
+[![CI](https://github.com/san0808/commitcraft/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/san0808/commitcraft/actions)
 
 A fast, intelligent CLI tool that generates conventional commit messages using AI. Built in Rust for performance and reliability.
 
@@ -22,7 +22,7 @@ A fast, intelligent CLI tool that generates conventional commit messages using A
 
 #### Option 1: Quick Install (Linux/macOS)
 ```bash
-curl -sSL https://raw.githubusercontent.com/sanket08/commitcraft/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/san0808/commitcraft/main/install.sh | bash
 ```
 
 #### Option 2: Install via Cargo
@@ -31,11 +31,11 @@ cargo install commitcraft
 ```
 
 #### Option 3: Download Binary
-Download the latest binary from [GitHub Releases](https://github.com/sanket08/commitcraft/releases)
+Download the latest binary from [GitHub Releases](https://github.com/san0808/commitcraft/releases)
 
 #### Option 4: Build from Source
 ```bash
-git clone https://github.com/sanket08/commitcraft
+git clone https://github.com/san0808/commitcraft
 cd commitcraft
 cargo build --release
 sudo cp target/release/commitcraft /usr/local/bin/commitcraft
