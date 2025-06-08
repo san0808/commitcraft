@@ -71,7 +71,7 @@ Analyze the git diff carefully and generate an appropriate conventional commit m
             ChatCompletionRequestMessage::User(ChatCompletionRequestUserMessage {
                 role: Role::User,
                 content: ChatCompletionRequestUserMessageContent::Text(
-                    format!("Here is the git diff:\\n\\n```diff\\n{}\\n```", diff)
+                    format!("Here is the git diff:\n\n```diff\n{}\n```", diff)
                 ),
                 name: None,
             }),
@@ -94,7 +94,7 @@ Analyze the git diff carefully and generate an appropriate conventional commit m
             .ok_or("Expected tool calls from OpenAI".to_string())?[0].function;
 
         let commit: Commit = serde_json::from_str(&function_details.arguments)
-            .map_err(|e| format!("Failed to parse OpenAI tool call arguments: {}\\nArguments: {}", e, function_details.arguments))?;
+            .map_err(|e| format!("Failed to parse OpenAI tool call arguments: {}\nArguments: {}", e, function_details.arguments))?;
 
         Ok(GeneratedCommit {
             title: commit.title,
