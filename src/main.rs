@@ -1,7 +1,7 @@
 use clap::Parser;
 use colored::*;
 use question::{Answer, Question};
-use rustyline::{DefaultEditor, Result as RustyResult};
+use rustyline::DefaultEditor;
 use spinners::{Spinner, Spinners};
 use std::process::Command;
 

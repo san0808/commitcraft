@@ -65,6 +65,7 @@ impl GeneratedCommit {
     }
 
     /// Gets a summary of the commit for display
+    #[allow(dead_code)]
     pub fn summary(&self) -> String {
         format!(
             "Type: {}, Files: {}",
@@ -74,6 +75,7 @@ impl GeneratedCommit {
     }
 
     /// Extracts the commit type from the title
+    #[allow(dead_code)]
     pub fn get_type(&self) -> String {
         if let Some(colon_pos) = self.title.find(':') {
             let prefix = &self.title[..colon_pos];
@@ -88,9 +90,9 @@ impl GeneratedCommit {
     }
 }
 
-impl ToString for GeneratedCommit {
-    fn to_string(&self) -> String {
-        format!("{}\n\n{}", self.title, self.description)
+impl std::fmt::Display for GeneratedCommit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}\n\n{}", self.title, self.description)
     }
 }
 

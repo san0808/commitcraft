@@ -44,7 +44,7 @@ impl OpenAIProvider {
 #[async_trait]
 impl AIProvider for OpenAIProvider {
     async fn generate_commit_message(&self, diff: &str) -> Result<GeneratedCommit, String> {
-        let parameters_schema = serde_json::to_value(schemars::schema_for!(Commit))
+        let _parameters_schema = serde_json::to_value(schemars::schema_for!(Commit))
             .map_err(|e| format!("Failed to create schema: {}", e))?;
 
         let system_prompt = "You are an expert programmer who writes git commit messages following the Conventional Commits specification (https://www.conventionalcommits.org/en/v1.0.0/).
@@ -97,7 +97,7 @@ Analyze the git diff carefully and generate an appropriate conventional commit m
 
         let choice = response
             .choices
-            .get(0)
+            .first()
             .ok_or("No response choice from OpenAI".to_string())?;
 
         let function_details = &choice

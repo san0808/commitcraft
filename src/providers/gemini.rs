@@ -107,8 +107,8 @@ Analyze the git diff carefully and generate an appropriate conventional commit m
 
         let text = gemini_response
             .candidates
-            .get(0)
-            .and_then(|c| c.content.parts.get(0))
+            .first()
+            .and_then(|c| c.content.parts.first())
             .map(|p| &p.text)
             .ok_or("Invalid response structure from Gemini".to_string())?;
 

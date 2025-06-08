@@ -10,7 +10,7 @@ pub fn is_git_repository() -> bool {
         .stdout(Stdio::null())
         .stderr(Stdio::null())
         .status()
-        .map_or(false, |status| status.success())
+        .is_ok_and(|status| status.success())
 }
 
 /// Gets the diff of staged files.

@@ -94,7 +94,7 @@ Analyze the git diff carefully and generate an appropriate conventional commit m
 
         let text = anthropic_response
             .content
-            .get(0)
+            .first()
             .map(|c| &c.text)
             .ok_or("Invalid response structure from Anthropic".to_string())?;
 
