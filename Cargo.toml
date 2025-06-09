@@ -1,6 +1,6 @@
 [package]
 name = "commitcraft"
-version = "1.0.1"
+version = "1.0.2"
 edition = "2021"
 description = "A fast, intelligent CLI tool that generates conventional commit messages using AI"
 authors = ["Sanket <sanket@example.com>"]
