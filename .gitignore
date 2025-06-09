@@ -71,3 +71,9 @@ temp/
 # Build artifacts
 dist/
 build/
+
+# Demo recordings
+/recordings/
+/demo/recordings/
+*.cast
+*.asciinema

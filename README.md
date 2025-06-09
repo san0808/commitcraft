@@ -183,6 +183,38 @@ src/
     └── anthropic.rs  # Anthropic Claude integration
 ```
 
+## 🎬 Demos & Recordings
+
+### Watch CommitCraft in Action
+
+Experience CommitCraft's power through our professional demo videos:
+
+#### 🎯 Quick Demo (3 minutes)
+Perfect for social media and quick showcases:
+```bash
+./demo/quick-demo.sh
+```
+
+#### 🎨 Full Cinematic Demo (8-10 minutes)  
+Complete feature walkthrough for presentations:
+```bash
+./demo/cinematic-demo.sh
+```
+
+#### 📹 Professional Recording Studio
+Create upload-ready videos in multiple formats:
+```bash
+./demo/record-cinematic.sh
+```
+
+**Automatic Features:**
+- ✅ Auto-resizes terminal for optimal recording
+- ✅ Generates MP4, GIF, WebM formats for any platform  
+- ✅ Professional quality with realistic typing effects
+- ✅ Upload guides for YouTube, Twitter, LinkedIn, GitHub
+
+See [`demo/README.md`](demo/README.md) for complete documentation.
+
 ## 🧪 Development
 
 ### Building
