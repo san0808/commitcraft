@@ -2,8 +2,17 @@ use async_trait::async_trait;
 use reqwest::Client;
 use serde::Deserialize;
 use serde_json::json;
+use schemars::JsonSchema;
 
 use super::{AIProvider, GeneratedCommit};
+
+#[derive(Debug, serde::Deserialize, JsonSchema)]
+struct Commit {
+    /// The title of the commit message (max 50 chars).
+    title: String,
+    /// A detailed, exhaustive description of the changes.
+    description: String,
+}
 
 pub struct GeminiProvider {
     client: Client,
@@ -29,6 +38,9 @@ struct GeminiResponse {
 #[derive(Deserialize)]
 struct Candidate {
     content: Content,
+    #[serde(rename = "finishReason")]
+    #[allow(dead_code)]
+    finish_reason: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -37,8 +49,9 @@ struct Content {
 }
 
 #[derive(Deserialize)]
-struct Part {
-    text: String,
+#[serde(untagged)]
+enum Part {
+    Text { text: String },
 }
 
 #[async_trait]
@@ -49,17 +62,15 @@ impl AIProvider for GeminiProvider {
             self.model, self.api_key
         );
 
-        let system_prompt = "You are an expert programmer who writes git commit messages following the Conventional Commits specification (https://www.conventionalcommits.org/en/v1.0.0/).
-
-IMPORTANT: Respond with ONLY a JSON object in the format {\"title\": \"string\", \"description\": \"string\"}.
+        let system_instruction = "You are an expert programmer who writes git commit messages following the Conventional Commits specification (https://www.conventionalcommits.org/en/v1.0.0/).
 
 For the title field:
 - MUST follow this exact format: <type>[optional scope]: <description>
-- Common types: feat (new feature), fix (bug fix), docs (documentation), style (formatting), refactor (code restructuring), test (adding tests), chore (maintenance)
-- Keep under 50 characters
+- Common types: feat (new feature), fix (bug fix), docs (documentation), style (formatting), refactor (code restructuring), test (adding tests), chore (maintenance)  
+- CRITICAL: Keep title under 50 characters total (including type and colon)
 - Use lowercase for type
-- Be specific and actionable
-- Examples: \"feat(auth): add OAuth2 login support\", \"fix: resolve memory leak in parser\"
+- Be specific but concise
+- Examples: \"feat(auth): add OAuth2 login\", \"fix: resolve memory leak\"
 
 For the description field:
 - Provide detailed explanation of what changed and why
@@ -67,20 +78,34 @@ For the description field:
 - Explain the impact and context
 - Include breaking changes if any
 
-Analyze the git diff carefully and generate an appropriate conventional commit message.";
+Analyze the git diff carefully and respond with a JSON object containing the title and description fields. The title MUST be 50 characters or less.";
+
+        // Create the response schema using the new structured output approach
+        let mut response_schema = serde_json::to_value(schemars::schema_for!(Commit))
+            .map_err(|e| format!("Failed to create schema: {}", e))?;
+        
+        // Remove $schema and other metadata that Gemini doesn't accept
+        if let Some(obj) = response_schema.as_object_mut() {
+            obj.remove("$schema");
+            obj.remove("title");
+        }
 
         let body = json!({
+            "system_instruction": {
+                "parts": [
+                    { "text": system_instruction }
+                ]
+            },
             "contents": [{
                 "parts": [
-                    { "text": system_prompt },
-                    { "text": "Git diff to analyze:\n```diff\n" },
-                    { "text": diff },
-                    { "text": "\n```" }
+                    { "text": format!("Here is the git diff to analyze:\n```diff\n{}\n```", diff) }
                 ]
             }],
-            "generationConfig": {
-                "response_mime_type": "application/json",
+            "generation_config": {
                 "temperature": 0.2,
+                "candidate_count": 1,
+                "response_mime_type": "application/json",
+                "response_schema": response_schema
             }
         });
 
@@ -105,15 +130,24 @@ Analyze the git diff carefully and generate an appropriate conventional commit m
             .await
             .map_err(|e| format!("Failed to parse Gemini response: {}", e))?;
 
-        let text = gemini_response
+        let candidate = gemini_response
             .candidates
             .first()
-            .and_then(|c| c.content.parts.first())
-            .map(|p| &p.text)
-            .ok_or("Invalid response structure from Gemini".to_string())?;
+            .ok_or("No candidates in Gemini response".to_string())?;
 
-        serde_json::from_str(text)
-            .map_err(|e| format!("Failed to parse JSON from Gemini response text: {}", e))
+        // With structured output, Gemini returns JSON directly in text parts
+        for part in &candidate.content.parts {
+            let Part::Text { text } = part;
+            let commit: Commit = serde_json::from_str(text)
+                .map_err(|e| format!("Failed to parse structured JSON response: {}", e))?;
+            
+            return Ok(GeneratedCommit {
+                title: commit.title,
+                description: commit.description,
+            });
+        }
+
+        Err("No text content found in Gemini response".to_string())
     }
 }
 
@@ -133,11 +167,49 @@ mod tests {
     fn test_gemini_response_deserialize() {
         let json = r#"{
             "candidates": [
-                { "content": { "parts": [ { "text": "{\"title\": \"feat: add\", \"description\": \"desc\"}" } ] } }
+                { 
+                    "content": { 
+                        "parts": [ 
+                            { 
+                                "text": "{\"title\": \"feat: add new feature\", \"description\": \"Added a new feature to improve functionality\"}"
+                            } 
+                        ] 
+                    },
+                    "finishReason": "STOP"
+                }
             ]
         }"#;
         let resp: GeminiResponse = serde_json::from_str(json).unwrap();
-        let text = &resp.candidates[0].content.parts[0].text;
-        assert!(text.contains("title"));
+        assert_eq!(resp.candidates.len(), 1);
+        
+        // Test structured output parsing
+        if let Part::Text { text } = &resp.candidates[0].content.parts[0] {
+            let commit: Commit = serde_json::from_str(text).unwrap();
+            assert_eq!(commit.title, "feat: add new feature");
+            assert_eq!(commit.description, "Added a new feature to improve functionality");
+        } else {
+            panic!("Expected text part");
+        }
+    }
+
+    #[test]
+    fn test_gemini_text_response_deserialize() {
+        let json = r#"{
+            "candidates": [
+                { 
+                    "content": { 
+                        "parts": [ 
+                            { "text": "{\"title\": \"feat: add\", \"description\": \"desc\"}" } 
+                        ] 
+                    } 
+                }
+            ]
+        }"#;
+        let resp: GeminiResponse = serde_json::from_str(json).unwrap();
+        if let Part::Text { text } = &resp.candidates[0].content.parts[0] {
+            assert!(text.contains("title"));
+        } else {
+            panic!("Expected text part");
+        }
     }
 }
