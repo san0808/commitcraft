@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use reqwest::Client;
+use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::json;
-use schemars::JsonSchema;
 
 use super::{AIProvider, GeneratedCommit};
 
@@ -43,7 +43,7 @@ enum ContentBlock {
     #[serde(rename = "text")]
     Text { text: String },
     #[serde(rename = "tool_use")]
-    ToolUse { 
+    ToolUse {
         #[allow(dead_code)]
         id: String,
         name: String,
@@ -131,7 +131,7 @@ Analyze the git diff carefully and generate an appropriate conventional commit m
                 if name == "generate_commit" {
                     let commit: Commit = serde_json::from_value(input.clone())
                         .map_err(|e| format!("Failed to parse tool input: {}", e))?;
-                    
+
                     return Ok(GeneratedCommit {
                         title: commit.title,
                         description: commit.description,
@@ -187,7 +187,7 @@ mod tests {
         }"#;
         let resp: AnthropicResponse = serde_json::from_str(json).unwrap();
         assert_eq!(resp.content.len(), 1);
-        
+
         // Test tool use parsing
         if let ContentBlock::ToolUse { name, input, .. } = &resp.content[0] {
             assert_eq!(name, "generate_commit");

@@ -188,7 +188,6 @@ fn save_config(config: &Config) -> Result<(), String> {
 mod tests {
     use super::*;
 
-
     #[test]
     fn test_models_default() {
         let models = Models::default();

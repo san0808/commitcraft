@@ -1,15 +1,10 @@
 use async_openai::{
     config::OpenAIConfig,
     types::{
-        ChatCompletionRequestMessage,
-        ChatCompletionRequestSystemMessage,
-        ChatCompletionRequestUserMessage,
-        ChatCompletionRequestUserMessageContent,
-        ChatCompletionTool,
-        ChatCompletionToolType,
-        CreateChatCompletionRequestArgs,
-        FunctionObject,
-        Role,
+        ChatCompletionRequestMessage, ChatCompletionRequestSystemMessage,
+        ChatCompletionRequestUserMessage, ChatCompletionRequestUserMessageContent,
+        ChatCompletionTool, ChatCompletionToolType, CreateChatCompletionRequestArgs,
+        FunctionObject, Role,
     },
     Client,
 };

@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use reqwest::Client;
+use schemars::JsonSchema;
 use serde::Deserialize;
 use serde_json::json;
-use schemars::JsonSchema;
 
 use super::{AIProvider, GeneratedCommit};
 
@@ -83,7 +83,7 @@ Analyze the git diff carefully and respond with a JSON object containing the tit
         // Create the response schema using the new structured output approach
         let mut response_schema = serde_json::to_value(schemars::schema_for!(Commit))
             .map_err(|e| format!("Failed to create schema: {}", e))?;
-        
+
         // Remove $schema and other metadata that Gemini doesn't accept
         if let Some(obj) = response_schema.as_object_mut() {
             obj.remove("$schema");
@@ -140,7 +140,7 @@ Analyze the git diff carefully and respond with a JSON object containing the tit
             let Part::Text { text } = part;
             let commit: Commit = serde_json::from_str(text)
                 .map_err(|e| format!("Failed to parse structured JSON response: {}", e))?;
-            
+
             return Ok(GeneratedCommit {
                 title: commit.title,
                 description: commit.description,
@@ -181,12 +181,15 @@ mod tests {
         }"#;
         let resp: GeminiResponse = serde_json::from_str(json).unwrap();
         assert_eq!(resp.candidates.len(), 1);
-        
+
         // Test structured output parsing
         if let Part::Text { text } = &resp.candidates[0].content.parts[0] {
             let commit: Commit = serde_json::from_str(text).unwrap();
             assert_eq!(commit.title, "feat: add new feature");
-            assert_eq!(commit.description, "Added a new feature to improve functionality");
+            assert_eq!(
+                commit.description,
+                "Added a new feature to improve functionality"
+            );
         } else {
             panic!("Expected text part");
         }
