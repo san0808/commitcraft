@@ -13,6 +13,10 @@ keywords = ["git", "commit", "ai", "conventional-commits", "cli"]
 categories = ["command-line-utilities", "development-tools"]
 exclude = ["target/", ".git/", "*.log"]
 
+[lib]
+name = "commitcraft"
+path = "src/lib.rs"
+
 [[bin]]
 name = "commitcraft"
 path = "src/main.rs"
