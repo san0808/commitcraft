@@ -1,6 +1,6 @@
 [package]
 name = "commitcraft"
-version = "1.0.2"
+version = "1.1.0"
 edition = "2021"
 description = "A fast, intelligent CLI tool that generates conventional commit messages using AI"
 authors = ["Sanket <sanket@example.com>"]
@@ -12,6 +12,10 @@ readme = "README.md"
 keywords = ["git", "commit", "ai", "conventional-commits", "cli"]
 categories = ["command-line-utilities", "development-tools"]
 exclude = ["target/", ".git/", "*.log"]
+
+[lib]
+name = "commitcraft"
+path = "src/lib.rs"
 
 [[bin]]
 name = "commitcraft"

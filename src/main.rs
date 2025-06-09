@@ -5,10 +5,7 @@ use rustyline::DefaultEditor;
 use spinners::{Spinner, Spinners};
 use std::process::Command;
 
-mod cli;
-mod config;
-mod git;
-mod providers;
+use commitcraft::{cli, config, git, providers};
 
 use cli::{Cli, Commands};
 use providers::{

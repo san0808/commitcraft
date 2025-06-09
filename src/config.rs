@@ -33,9 +33,9 @@ pub struct Models {
 impl Default for Models {
     fn default() -> Self {
         Self {
-            openai: Some("gpt-4o-mini".to_string()),
+            openai: Some("gpt-4.1-nano".to_string()),
             gemini: Some("gemini-1.5-flash-latest".to_string()),
-            anthropic: Some("claude-3-haiku-20240307".to_string()),
+            anthropic: Some("claude-3-5-haiku-20241022".to_string()),
         }
     }
 }
@@ -187,18 +187,15 @@ fn save_config(config: &Config) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::HashMap;
-    use std::fs;
-    use std::path::PathBuf;
 
     #[test]
     fn test_models_default() {
         let models = Models::default();
-        assert_eq!(models.openai, Some("gpt-4o-mini".to_string()));
+        assert_eq!(models.openai, Some("gpt-4.1-nano".to_string()));
         assert_eq!(models.gemini, Some("gemini-1.5-flash-latest".to_string()));
         assert_eq!(
             models.anthropic,
-            Some("claude-3-haiku-20240307".to_string())
+            Some("claude-3-5-haiku-20241022".to_string())
         );
     }
 

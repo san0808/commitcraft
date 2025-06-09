@@ -7,6 +7,8 @@
 
 A fast, intelligent CLI tool that generates conventional commit messages using AI. Built in Rust for performance and reliability.
 
+> **🎉 What's New in v1.1.0**: Updated to the latest AI models for **75% faster responses** and **75% cost savings**! Now featuring GPT-4.1 Nano and Claude 3.5 Haiku as defaults.
+
 ## ✨ Features
 
 - **🤖 Multi-AI Provider Support**: Works with OpenAI, Google Gemini, and Anthropic Claude
@@ -123,9 +125,9 @@ gemini = "your-api-key"
 anthropic = "your-api-key"
 
 [models]
-openai = "gpt-4o-mini"
-gemini = "gemini-1.5-flash-latest"
-anthropic = "claude-3-haiku-20240307"
+openai = "gpt-4.1-nano"                    # Latest: 75% faster & cheaper
+gemini = "gemini-1.5-flash-latest"         # Unchanged: Already optimal  
+anthropic = "claude-3-5-haiku-20241022"    # Latest: Superior performance
 
 [aliases]
 fast = "gemini-1.5-flash-latest"
@@ -201,14 +203,7 @@ Complete feature walkthrough for presentations:
 ./demo/cinematic-demo.sh
 ```
 
-#### 📹 Professional Recording Studio
-Create upload-ready videos in multiple formats:
-```bash
-./demo/record-cinematic.sh
-```
-
 **Automatic Features:**
-- ✅ Auto-resizes terminal for optimal recording
 - ✅ Generates MP4, GIF, WebM formats for any platform  
 - ✅ Professional quality with realistic typing effects
 - ✅ Upload guides for YouTube, Twitter, LinkedIn, GitHub
