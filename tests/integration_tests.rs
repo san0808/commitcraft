@@ -24,7 +24,7 @@ index 1234567..abcdefg 100644
     #[ignore = "requires OpenAI API key"]
     async fn test_openai_integration() {
         let api_key = env::var("OPENAI_API_KEY").expect("OPENAI_API_KEY must be set for integration tests");
-        let provider = OpenAIProvider::new(api_key, "gpt-4o-mini".to_string());
+        let provider = OpenAIProvider::new(api_key, "gpt-4.1-nano".to_string());
         
         let result = provider.generate_commit_message(TEST_DIFF).await;
         

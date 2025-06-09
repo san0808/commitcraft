@@ -33,7 +33,7 @@ pub struct Models {
 impl Default for Models {
     fn default() -> Self {
         Self {
-            openai: Some("gpt-4o-mini".to_string()),
+            openai: Some("gpt-4.1-nano".to_string()),
             gemini: Some("gemini-1.5-flash-latest".to_string()),
             anthropic: Some("claude-3-5-haiku-20241022".to_string()),
         }
@@ -192,7 +192,7 @@ mod tests {
     #[test]
     fn test_models_default() {
         let models = Models::default();
-        assert_eq!(models.openai, Some("gpt-4o-mini".to_string()));
+        assert_eq!(models.openai, Some("gpt-4.1-nano".to_string()));
         assert_eq!(models.gemini, Some("gemini-1.5-flash-latest".to_string()));
         assert_eq!(
             models.anthropic,
