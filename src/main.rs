@@ -45,9 +45,8 @@ async fn main() {
     let cli_args = Cli::parse();
 
     // Show welcome banner for main functionality (not for subcommands)
-    match &cli_args.command {
-        None => show_welcome(),
-        _ => {}
+    if cli_args.command.is_none() {
+        show_welcome();
     }
 
     // Handle commands
