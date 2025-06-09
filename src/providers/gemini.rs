@@ -136,11 +136,11 @@ Analyze the git diff carefully and respond with a JSON object containing the tit
             .ok_or("No candidates in Gemini response".to_string())?;
 
         // With structured output, Gemini returns JSON directly in text parts
-        for part in &candidate.content.parts {
+                if let Some(part) = candidate.content.parts.first() {
             let Part::Text { text } = part;
             let commit: Commit = serde_json::from_str(text)
                 .map_err(|e| format!("Failed to parse structured JSON response: {}", e))?;
-
+            
             return Ok(GeneratedCommit {
                 title: commit.title,
                 description: commit.description,
