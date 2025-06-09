@@ -201,14 +201,7 @@ Complete feature walkthrough for presentations:
 ./demo/cinematic-demo.sh
 ```
 
-#### 📹 Professional Recording Studio
-Create upload-ready videos in multiple formats:
-```bash
-./demo/record-cinematic.sh
-```
-
 **Automatic Features:**
-- ✅ Auto-resizes terminal for optimal recording
 - ✅ Generates MP4, GIF, WebM formats for any platform  
 - ✅ Professional quality with realistic typing effects
 - ✅ Upload guides for YouTube, Twitter, LinkedIn, GitHub
